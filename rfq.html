@@ -50,7 +50,7 @@ body{background:var(--bg);color:var(--text);font-family:"Courier New",monospace;
 .badge{padding:0 5px;border-radius:3px;font-size:9px;border:1px solid;font-family:monospace;flex-shrink:0;line-height:16px}
 .bef{background:#1e3a5f;color:#93c5fd;border-color:#2563eb44}.bcc{background:#0d2b2a;color:#5eead4;border-color:#0d948844}.broot{background:#2d0a14;color:#fca5a5;border-color:#9f123944}
 .nidu{color:var(--text3);font-size:9px;flex-shrink:0;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.nname{flex:0 0 auto;white-space:nowrap;font-size:11px}
 .ef-tx{color:var(--text)}.cc-tx{color:#5eead4}.root-tx{color:#fca5a5}.match-tx{color:#fde68a;font-weight:bold}
 .nmeta{display:flex;align-items:center;gap:3px;flex-shrink:0}
 .acr-badge{display:inline-flex;align-items:center;padding:1px 5px;border-radius:3px;font-size:9px;border:1px solid;font-family:monospace;white-space:nowrap;line-height:14px}
@@ -325,7 +325,19 @@ function makeBadgeEl(id, acrMap){
 }
 
 // Ligne de badges sans separateur -- si champ vide, rien
-
+function makePillsEl(node, acrMap){
+  var wrap = document.createElement("div");
+  wrap.className = "nmeta";
+  if (node.application && node.application !== "." && node.application !== "")
+    wrap.appendChild(makeBadgeEl(node.application, acrMap));
+  if (node.besoin && node.besoin !== "." && node.besoin !== "")
+    wrap.appendChild(makeBadgeEl(node.besoin, acrMap));
+  if (node.risque && node.risque !== "." && node.risque !== "")
+    wrap.appendChild(makeBadgeEl(node.risque, acrMap));
+  if (node.phase && node.phase !== "0" && node.phase !== "")
+    wrap.appendChild(makeBadgeEl(node.phase, acrMap));
+  return wrap;
+}
 
 // Stubs (fonctions FBS non utilisees cote SOW)
 function getManualOrder(childFbsId,parentTvId){
@@ -632,64 +644,78 @@ function iconImg(id){
 function renderNodeSow(node,container,depth){
   // Filtre competence : ne montrer que les branches concernees
   if(filterCompetence && !subtreeHasCompetence(node) && node.typeId!=="ROOT")return;
+  var acrMapB=buildAcrMap();
+  var isOpen=expandState[node.tvId]!==false;
+  var isSel=(selectedNodeId===node.fbsId && selectedTv===node.tvId);
+  var indent=Math.min(depth*30,180);
   var wrap=document.createElement("div");
   var row=document.createElement("div");
-  row.className="node-row";
-  row.style.paddingLeft=(depth*22+4)+"px";
-  row.style.display="flex";row.style.alignItems="center";row.style.gap="4px";
+  var selCls=isSel?(node.typeId==="CC"?"sel-cc":node.typeId==="ROOT"?"sel-root":"sel-ef"):"";
+  row.className="node-row "+selCls;
+  row.style.paddingLeft=(indent+4)+"px";
+  row.onclick=function(){selectSowNode(node);};
+  if(node.typeId!=="ROOT" && node.typeId!=="CC"){
+    row.oncontextmenu=function(e){e.preventDefault();e.stopPropagation();selectSowNode(node);showSowCtx(e.clientX,e.clientY,node);};
+  }
 
   var hasKids=node.children&&node.children.length;
-  var tog=makeEl("span",{style:{width:"14px",cursor:hasKids?"pointer":"default",color:"var(--text3)",fontSize:"10px"}},hasKids?(expandState[node.tvId]!==false?"\u25be":"\u25b8"):"");
-  if(hasKids)tog.onclick=function(ev){ev.stopPropagation();expandState[node.tvId]=(expandState[node.tvId]===false);renderTree();};
+  var tog=document.createElement("span");
+  tog.className="tog";
+  tog.textContent=hasKids?(isOpen?"v":">"):" ";
+  if(hasKids)tog.onclick=function(e){e.stopPropagation();expandState[node.tvId]=(expandState[node.tvId]===false);renderTree();};
   row.appendChild(tog);
 
-  // Icone SOW (rouge cree / vert rempli) pour les EF
+  // Badge du type (EF/CC/Racine), meme logique que la FBS
+  var badge=document.createElement("span");
+  var typeAcr=acrMapB[node.typeId]||acrMapB["Racine"];
+  if(node.typeId==="ROOT"){
+    badge.className="badge broot";
+    var rootAcr=acrMapB["Racine"];
+    if(rootAcr&&rootAcr.iconBase64){
+      var ri=document.createElement("img");
+      ri.src="data:image/png;base64,"+rootAcr.iconBase64;
+      ri.style.width="14px";ri.style.height="14px";ri.style.objectFit="contain";ri.style.verticalAlign="middle";
+      badge.appendChild(ri);
+    } else { badge.textContent="R"; }
+  } else if(typeAcr&&typeAcr.iconBase64){
+    badge.className="badge-icon";
+    var ti=document.createElement("img");
+    ti.src="data:image/png;base64,"+typeAcr.iconBase64;
+    ti.style.width="18px";ti.style.height="18px";ti.style.objectFit="contain";ti.style.verticalAlign="middle";
+    ti.title=typeAcr.designation||node.typeId;
+    badge.appendChild(ti);
+  } else {
+    badge.className="badge "+(node.typeId==="CC"?"bcc":"bef");
+    badge.textContent=node.typeId||"?";
+  }
+  row.appendChild(badge);
+
+  // Indicateur fiche SOW (rouge cree / vert rempli) - propre a RFQ, pas de badge equivalent en FBS
   if(node.typeId!=="ROOT" && node.typeId!=="CC"){
     var st=ficheState(node.fbsId);
     if(st!=="none"){
-      var dot=makeEl("span",{style:{display:"inline-block",width:"9px",height:"9px",borderRadius:"50%",background:st==="filled"?"#16a34a":"#dc2626",flexShrink:"0"}});
+      var dot=document.createElement("span");
+      dot.style.display="inline-block";dot.style.width="9px";dot.style.height="9px";dot.style.borderRadius="50%";
+      dot.style.background=st==="filled"?"#16a34a":"#dc2626";dot.style.flexShrink="0";dot.style.marginRight="1px";
       dot.title=st==="filled"?"Fiche SOW remplie":"Fiche SOW creee (incomplete)";
       row.appendChild(dot);
     }
   }
 
-  // Icone du type (EF/CC/Racine) en debut de ligne, comme dans la FBS
-  var typeIconId=(node.typeId==="ROOT")?"Racine":node.typeId;
-  var ta=(state.acronymes||[]).find(function(x){return x.id===typeIconId;});
-  if(ta&&ta.iconBase64){
-    row.appendChild(makeEl("img",{src:"data:image/png;base64,"+ta.iconBase64,title:ta.designation||node.typeId,style:{width:"18px",height:"18px",objectFit:"contain",verticalAlign:"middle",flexShrink:"0"}}));
-  }else{
-    row.appendChild(makeEl("span",{style:{fontSize:"9px",fontWeight:"bold",color:node.typeId==="CC"?"#0d9488":"#1d4ed8",flexShrink:"0"}},node.typeId||""));
-  }
+  if(node.idu){var idu=document.createElement("span");idu.className="nidu";idu.textContent=node.idu;idu.title=node.idu;row.appendChild(idu);}
+  var name=document.createElement("span");
+  name.className="nname "+(node.typeId==="CC"?"cc-tx":node.typeId==="ROOT"?"root-tx":"ef-tx");
+  name.textContent=node.no||node.chemin||node.tvId;
+  name.title=node.chemin||node.no||"";
+  row.appendChild(name);
+  if(node.typeId!=="ROOT")row.appendChild(makePillsEl(node,acrMapB));
 
-  // IDU + nom
-  var typeColor=node.typeId==="CC"?"#0d9488":(node.typeId==="ROOT"?"#540E28":"#1d4ed8");
-  if(node.idu)row.appendChild(makeEl("span",{style:{fontSize:"10px",fontFamily:"monospace",color:"var(--text3)"}},node.idu));
-  row.appendChild(makeEl("span",{style:{fontSize:"12px",color:typeColor,fontWeight:node.typeId==="CC"?"normal":"bold"}},node.no||""));
-
-  // Icones de caracterisation (ordre: Besoin Client, Risque, Phase Projet, Application)
-  if(node.typeId!=="ROOT"){
-    var ic=makeEl("span",{style:{display:"inline-flex",alignItems:"center",gap:"3px",marginLeft:"6px"}});
-    [node.besoin,node.risque,node.phase,node.application].forEach(function(v){
-      if(v&&v!=="."&&v!==""){var im=iconImg(v);if(im)ic.appendChild(im);}
-    });
-    if(ic.childNodes.length)row.appendChild(ic);
-  }
-
-  // Clic gauche : selectionner et afficher la fiche a droite (EF et CC)
-  row.onclick=function(){selectSowNode(node);};
-  row.style.cursor="pointer";
-  if(selectedNodeId===node.fbsId && selectedTv===node.tvId){
-    row.style.background="#1e293b";row.style.borderRadius="4px";
-  }
-  // Clic droit : declarer interesse (EF seulement)
-  if(node.typeId!=="ROOT" && node.typeId!=="CC"){
-    row.oncontextmenu=function(e){e.preventDefault();e.stopPropagation();showSowCtx(e.clientX,e.clientY,node);};
-  }
   wrap.appendChild(row);
 
-  if(hasKids&&expandState[node.tvId]!==false){
+  if(isOpen&&hasKids){
     var ch=document.createElement("div");
+    ch.style.borderLeft="1px solid #2d374855";
+    ch.style.marginLeft=(indent+18)+"px";
     node.children.forEach(function(k){renderNodeSow(k,ch,depth+1);});
     wrap.appendChild(ch);
   }
