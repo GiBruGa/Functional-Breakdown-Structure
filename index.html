@@ -1423,6 +1423,79 @@ function renderParams(){
     beSec.appendChild(row);
   });
   panel.appendChild(beSec);
+
+  // Gestion des acces (admin uniquement)
+  if(window.isAdmin){
+    var accSec=makeEl("div",{style:{padding:"10px 16px",borderTop:"1px solid var(--border)"}});
+    accSec.appendChild(makeEl("div",{"class":"params-cat",style:{marginBottom:"8px"}},"Gestion des acces (outils UrBizia)"));
+    accSec.appendChild(makeEl("div",{style:{fontSize:"10px",color:"var(--text3)",marginBottom:"8px"}},"Compte unique partage entre FBS, RFQ et PointSan Desktop. Pour ajouter une nouvelle personne : Supabase > Authentication > Users > Invite user ; elle apparaitra ici une fois son compte cree."));
+    var accBody=makeEl("div",{});
+    accBody.appendChild(makeEl("div",{style:{fontSize:"10px",color:"var(--text3)",fontStyle:"italic"}},"Chargement..."));
+    accSec.appendChild(accBody);
+    panel.appendChild(accSec);
+    renderAccessManagement(accBody);
+  }
+}
+
+async function renderAccessManagement(container){
+  var TOOLS=[{key:"fbs",label:"FBS"},{key:"rfq",label:"RFQ"},{key:"pointsan_desktop",label:"PointSan Desktop"}];
+  try{
+    var res=await Promise.all([
+      sb.from("profiles").select("id,email,display_name").order("email"),
+      sb.from("tool_access").select("user_id,tool,role")
+    ]);
+    if(res[0].error)throw res[0].error;
+    if(res[1].error)throw res[1].error;
+    var profiles=res[0].data||[];
+    var access={};
+    (res[1].data||[]).forEach(function(r){access[r.user_id+"|"+r.tool]=r.role;});
+    container.innerHTML="";
+    if(!profiles.length){
+      container.appendChild(makeEl("div",{style:{fontSize:"10px",color:"var(--text3)",fontStyle:"italic"}},"(aucun compte)"));
+      return;
+    }
+    profiles.forEach(function(p){
+      var row=makeEl("div",{style:{display:"flex",alignItems:"center",gap:"14px",padding:"5px 0",borderBottom:"1px solid var(--border2)",flexWrap:"wrap"}});
+      row.appendChild(makeEl("span",{style:{flex:"1",minWidth:"180px",fontSize:"11px",color:"var(--text)"}},p.email||p.display_name||p.id));
+      TOOLS.forEach(function(t){
+        var cw=makeEl("div",{style:{display:"flex",alignItems:"center",gap:"4px"}});
+        cw.appendChild(makeEl("span",{style:{fontSize:"9px",color:"var(--text3)"}},t.label));
+        var sel=document.createElement("select");
+        sel.style.cssText="font-family:inherit;font-size:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);padding:2px 4px";
+        [["","Aucun acces"],["user","Utilisateur"],["admin","Admin"]].forEach(function(o){
+          var opt=document.createElement("option");opt.value=o[0];opt.textContent=o[1];sel.appendChild(opt);
+        });
+        sel.value=access[p.id+"|"+t.key]||"";
+        sel.onchange=(function(userId,tool,selEl){return function(){setToolAccess(userId,tool,selEl.value,selEl);};})(p.id,t.key,sel);
+        cw.appendChild(sel);
+        row.appendChild(cw);
+      });
+      container.appendChild(row);
+    });
+  }catch(e){
+    container.innerHTML="";
+    container.appendChild(makeEl("div",{style:{fontSize:"10px",color:"#f87171"}},"Erreur de chargement des acces : "+(e.message||e)));
+  }
+}
+
+async function setToolAccess(userId,tool,role,selEl){
+  var prevValue=selEl.getAttribute("data-prev")||"";
+  selEl.disabled=true;
+  try{
+    if(!role){
+      var del=await sb.from("tool_access").delete().eq("user_id",userId).eq("tool",tool);
+      if(del.error)throw del.error;
+    }else{
+      var up=await sb.from("tool_access").upsert({user_id:userId,tool:tool,role:role,granted_by:currentUserId},{onConflict:"user_id,tool"});
+      if(up.error)throw up.error;
+    }
+    selEl.setAttribute("data-prev",role);
+  }catch(e){
+    alert("Erreur mise a jour des acces : "+(e.message||e));
+    selEl.value=prevValue;
+  }finally{
+    selEl.disabled=false;
+  }
 }
 
 // ============================================================
