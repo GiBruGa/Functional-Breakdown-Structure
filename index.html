@@ -239,8 +239,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 <button class="btn" onclick="openAbout()" title="A propos / historique des versions">ⓘ A propos</button>
   <div class="sep"></div>
   <button class="btn" onclick="refreshFromSupabase()" title="Recharger les dernieres donnees depuis Supabase">⟳ Actualiser</button>
-  <span id="user-email" style="font-size:10px;color:var(--text3)"></span>
-  <button class="btn" onclick="doSignOut()">Se deconnecter</button>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <span id="user-email" style="font-size:10px;color:var(--text3)"></span>
+    <button class="btn" onclick="doSignOut()">Se deconnecter</button>
+  </div>
 </div>
 <div id="main">
   <div id="tree-panel">
