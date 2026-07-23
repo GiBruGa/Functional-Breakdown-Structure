@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UrBizia - FBS v12.0</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="common.css">
+<script src="common.js"></script>
 <style>*{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0a0d14;--bg2:#111827;--bg3:#1e2535;--border:#2d3748;--border2:#374151;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--blue:#3b82f6;--rose:#C46E8A;--brand-bright:#81093C;--brand-dark:#540E28;--brand-pink:#FFC3D5;--wordmark-on-dark:#C55A7A;--wordmark-font:"BankGothic Md BT","Bank Gothic","Eurostile","Segoe UI Semibold","Segoe UI",Arial,sans-serif}
 body{background:var(--bg);color:var(--text);font-family:"Courier New",monospace;font-size:13px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
@@ -40,20 +42,6 @@ body{background:var(--bg);color:var(--text);font-family:"Courier New",monospace;
 .filter-chip{display:inline-flex;align-items:center;gap:4px;background:#854d0e44;color:#fde68a;border:1px solid #854d0e;border-radius:4px;padding:1px 8px;font-size:10px;margin-right:6px}
 .filter-chip b{color:#fff}
 #tree-scroll{flex:1;overflow:auto;padding:6px;white-space:nowrap;min-height:0}
-.node-row{display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:5px;cursor:pointer;border:1px solid transparent;margin-bottom:1px;transition:all .12s}
-.node-row:hover{border-color:var(--border2);background:var(--bg3)}
-.sel-ef{background:#0f2044;border-color:#2563eb}.sel-cc{background:#052e2b;border-color:#0d9488}.sel-root{background:#1a0b10;border-color:#9f1239}
-.match{background:#1c1a08;border-color:#854d0e}.filter-match{outline:2px solid #f59e0b44;outline-offset:-1px}
-.tog{width:14px;height:14px;display:flex;align-items:center;justify-content:center;color:var(--text3);flex-shrink:0;font-size:10px;cursor:pointer;user-select:none}
-.badge{padding:0 5px;border-radius:3px;font-size:9px;border:1px solid;font-family:monospace;flex-shrink:0;line-height:16px}
-.bef{background:#1e3a5f;color:#93c5fd;border-color:#2563eb44}.bcc{background:#0d2b2a;color:#5eead4;border-color:#0d948844}.broot{background:#2d0a14;color:#fca5a5;border-color:#9f123944}
-.nidu{color:var(--text3);font-size:9px;flex-shrink:0;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nname{flex:0 0 auto;white-space:nowrap;font-size:11px}
-.ef-tx{color:var(--text)}.cc-tx{color:#5eead4}.root-tx{color:#fca5a5}.match-tx{color:#fde68a;font-weight:bold}
-.nmeta{display:flex;align-items:center;gap:3px;flex-shrink:0}
-.acr-badge{display:inline-flex;align-items:center;padding:1px 5px;border-radius:3px;font-size:9px;border:1px solid;font-family:monospace;white-space:nowrap;line-height:14px}
-.badge-icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;flex-shrink:0}
-.acr-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px}
 .detail-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;border:1px solid;font-family:monospace}
 #detail-panel{flex:1;min-width:280px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
 #detail-scroll{flex:1;overflow-y:auto}
@@ -333,58 +321,7 @@ function setManualOrder(childFbsId, parentFbsId, ord){
 }
 function esc(s){if(s===null||s===undefined)return "";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
-function buildAcrMap(){var m={};state.acronymes.forEach(function(a){m[a.id]=a;});return m;}
-
-// Badge acronyme : icone base64 si disponible, sinon badge colore
-// Pas de separateur entre badges -- si vide, rien n affiche
-function makeBadgeEl(id, acrMap){
-  var a = acrMap[id] || {};
-  var color = a.couleur || "#555";
-  var el = document.createElement("span");
-  el.title = a.designation || id;
-
-  if (a.iconBase64) {
-    // Mode icone
-    el.className = "acr-icon";
-    var img = document.createElement("img");
-    img.src = "data:image/png;base64," + a.iconBase64;
-    img.style.width = "14px";
-    img.style.height = "14px";
-    img.style.objectFit = "contain";
-    el.appendChild(img);
-  } else {
-    // Mode badge colore
-    el.className = "acr-badge";
-    el.textContent = id;
-    el.style.background = color + "33";
-    el.style.color = color;
-    el.style.borderColor = color + "88";
-    if (a.ordre === 1 && a.categorie === "Besoin_Client") {
-      el.style.background = color + "66";
-      el.style.fontWeight = "bold";
-    }
-    if (a.ordre <= 2 && a.categorie === "Risque_Type" && id !== "\u00b7") {
-      el.style.background = color + "55";
-      el.style.fontWeight = "bold";
-    }
-  }
-  return el;
-}
-
-// Ligne de badges sans separateur -- si champ vide, rien
-function makePillsEl(node, acrMap){
-  var wrap = document.createElement("div");
-  wrap.className = "nmeta";
-  if (node.application && node.application !== "." && node.application !== "")
-    wrap.appendChild(makeBadgeEl(node.application, acrMap));
-  if (node.besoin && node.besoin !== "." && node.besoin !== "")
-    wrap.appendChild(makeBadgeEl(node.besoin, acrMap));
-  if (node.risque && node.risque !== "." && node.risque !== "")
-    wrap.appendChild(makeBadgeEl(node.risque, acrMap));
-  if (node.phase && node.phase !== "0" && node.phase !== "")
-    wrap.appendChild(makeBadgeEl(node.phase, acrMap));
-  return wrap;
-}
+// buildAcrMap / makeBadgeEl / makePillsEl : voir common.js (partage avec RFQ.html)
 
 // ============================================================
 // MOTEUR PCRM
