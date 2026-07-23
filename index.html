@@ -2915,8 +2915,8 @@ setupZoom();
 </script>
 <div id="zoom-ind"></div>
 <script>
-var SUPABASE_URL = "https://qdkpwiwcbsbathlknvbh.supabase.co";
-var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFka3B3aXdjYnNiYXRobGtudmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3NDg1MTAsImV4cCI6MjEwMDMyNDUxMH0.OQ9hLiP47pyhnAweN0Mz8V_DawTDvRxHdUwIPRU6Dv8";
+var SUPABASE_URL = "https://mnsfstjgrueyuvejfvvk.supabase.co";
+var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uc2ZzdGpncnVleXV2ZWpmdnZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDI2MDgsImV4cCI6MjA5OTUxODYwOH0.Nb8d-b3zvXYqbl95PjkNrR12WXnVanJMGJzRU2-UpI4";
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 var currentUserId = null;
 window.isAdmin = false;
@@ -2948,6 +2948,15 @@ async function doSignOut(){
 }
 
 async function onAuthenticated(user){
+  var access = await sb.rpc("has_tool_access",{p_tool:"fbs"});
+  if(access.error || !access.data){
+    var errEl=document.getElementById("auth-error");
+    if(errEl) errEl.textContent="Ce compte n'a pas acces a FBS. Contactez l'administrateur.";
+    try{await sb.auth.signOut();}catch(e){}
+    currentUserId=null; window.isAdmin=false;
+    showAuthOverlay();
+    return;
+  }
   currentUserId=user.id;
   var ue=document.getElementById("user-email"); if(ue) ue.textContent=user.email;
   hideAuthOverlay();
@@ -2971,9 +2980,9 @@ async function refreshFromSupabase(){
       sb.from("lexique_domaines").select("label"),
       sb.from("contractors").select("*"),
       sb.from("sow").select("*"),
-      sb.from("profiles").select("is_admin").eq("id", currentUserId).single()
+      sb.rpc("has_tool_access",{p_tool:"fbs",p_min_role:"admin"})
     ]);
-    var fbsR=results[0], pcrmR=results[1], acrR=results[2], compR=results[3], lexR=results[4], lexDomR=results[5], ctrR=results[6], sowR=results[7], profR=results[8];
+    var fbsR=results[0], pcrmR=results[1], acrR=results[2], compR=results[3], lexR=results[4], lexDomR=results[5], ctrR=results[6], sowR=results[7], adminR=results[8];
     state.fbs=(fbsR.data||[]).map(function(r){return {id:r.id, idu:r.idu, typeId:r.type_id, no:r.no, dc:r.dc, lg:r.lg, ref:r.ref, refOrig:r.ref_orig, phase:r.phase, besoin:r.besoin, risque:r.risque, competences:r.competences||[], application:r.application, illustrations:r.illustrations||[]};});
     state.pcrm=(pcrmR.data||[]).map(function(r){return {childId:r.child_id, parentId:(r.parent_id===null?0:r.parent_id), ord:r.ord};});
     state.acronymes=(acrR.data||[]).map(function(r){return {id:r.id, categorie:r.categorie, ordre:r.ordre, designation:r.designation, couleur:r.couleur, iconBase64:r.icon_base64};});
@@ -2982,7 +2991,7 @@ async function refreshFromSupabase(){
     state.lexiqueDomaines=(lexDomR.data||[]).map(function(r){return r.label;});
     state.contractors=(ctrR.data||[]).map(function(r){return {id:r.id, nom:r.nom, contact:r.contact};});
     state.sow=(sowR.data||[]).map(function(r){return {ct:r.contractor_id, fbsId:r.fbs_id, inScope:r.in_scope, mi:r.mi, sf:r.sf, rd:r.rd, vp:r.vp, td:r.td, etpsem:r.etpsem, remarques:r.remarques, wp:r.wp};});
-    window.isAdmin = !!(profR.data && profR.data.is_admin);
+    window.isAdmin = !!(adminR && adminR.data);
     updateAdminUI();
     computeNodes(); renderTree();
     var ds=document.getElementById("detail-scroll"); if(ds) ds.innerHTML="";
