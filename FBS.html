@@ -1377,7 +1377,7 @@ function renderParams(){
 }
 
 async function renderAccessManagement(container){
-  var TOOLS=[{key:"fbs",label:"FBS"},{key:"rfq",label:"RFQ"},{key:"pointsan_desktop",label:"PointSan Desktop"}];
+  var TOOLS=[{key:"fbs",label:"FBS"},{key:"rfq",label:"RFQ"},{key:"pointsan_desktop",label:"PointSan Desktop"},{key:"pointsan_mobile",label:"PointSan Mobile (DIV)"}];
   try{
     var res=await Promise.all([
       sb.from("profiles").select("id,email,display_name").order("email"),
