@@ -226,7 +226,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <button class="btn" onclick="exportWord()" title="Export Word : prompt de demande d etude (FBS complete ou filtree)" style="background:#1d3a5f;color:#93c5fd;border-color:#2563eb">Prompt Word</button>
   <button class="btn" onclick="exportExcel()" title="Export Excel" style="background:#0d3b2a;color:#5eead4;border-color:#0d9488">Excel</button>
   <button id="btn-reset" class="btn danger" onclick="doReset()" style="display:none">Reset</button>
-<button class="btn" onclick="openAbout()" title="A propos / historique des versions">ⓘ A propos</button>
   <div class="sep"></div>
   <button class="btn" onclick="refreshFromSupabase()" title="Recharger les dernieres donnees depuis Supabase">⟳ Actualiser</button>
   <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
@@ -1705,21 +1704,6 @@ var CHANGELOG = [
     "Import des reponses SOW depuis l'outil UrBizia RFQ.",
   ]},
 ];
-function openAbout(){
-  var body=document.createElement("div");
-  body.appendChild(makeEl("p",{style:{fontSize:"12px",color:"var(--text3)",marginBottom:"16px"}},"UrBizia — FBS · version actuelle "+APP_VERSION));
-  CHANGELOG.forEach(function(entry){
-    var block=makeEl("div",{style:{borderLeft:"2px solid var(--blue)",paddingLeft:"12px",marginBottom:"16px"}});
-    block.appendChild(makeEl("h4",{style:{margin:"0 0 4px",fontSize:"13px",color:"var(--text)"}},entry.v));
-    block.appendChild(makeEl("div",{style:{fontSize:"10.5px",color:"var(--text3)",marginBottom:"6px"}},entry.date));
-    var ul=makeEl("ul",{style:{margin:"0",paddingLeft:"18px",fontSize:"12px",color:"var(--text3)",lineHeight:"1.7"}});
-    entry.items.forEach(function(it){ul.appendChild(makeEl("li",{},it));});
-    block.appendChild(ul);
-    body.appendChild(block);
-  });
-  showModal("A propos", body);
-}
-
 // ============================================================
 // MODALS
 // ============================================================
