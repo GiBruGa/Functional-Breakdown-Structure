@@ -1,6 +1,15 @@
 // Fonctions partagees entre FBS.html et RFQ.html pour l'affichage des badges/pastilles d'acronymes dans l'arborescence FBS.
 function buildAcrMap(){var m={};state.acronymes.forEach(function(a){m[a.id]=a;});return m;}
 
+// Source d'icone d'un acronyme : SVG (identite visuelle centralisee) prioritaire sur l'ancien PNG,
+// null si aucun des deux. A utiliser partout plutot que de reconstruire le data URI a la main.
+function acrIconSrc(a){
+  if(!a) return null;
+  if(a.iconSvg) return "data:image/svg+xml;utf8,"+encodeURIComponent(a.iconSvg);
+  if(a.iconBase64) return "data:image/png;base64,"+a.iconBase64;
+  return null;
+}
+
 // Badge acronyme : icone base64 si disponible, sinon badge colore
 // Pas de separateur entre badges -- si vide, rien n affiche
 function makeBadgeEl(id, acrMap){
