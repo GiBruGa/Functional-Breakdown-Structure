@@ -339,20 +339,6 @@ function renderTree(){
   c.appendChild(inner);
 }
 
-// Petite icone (image base64) d'un acronyme, ou pastille texte en secours
-// SUSPECTE INUTILISEE : aucun appelant trouve dans rfq.html/rfq.js (grep de tout le depot).
-// Fait doublon avec acrIconSrc()/makeBadgeEl() de common.js. A verifier avant suppression.
-function iconImg(id){
-  var a=(state.acronymes||[]).find(function(x){return x.id===id;});
-  if(a&&a.iconBase64){
-    return makeEl("img",{src:"data:image/png;base64,"+a.iconBase64,title:a.designation||id,style:{width:"14px",height:"14px",objectFit:"contain",verticalAlign:"middle",flexShrink:"0"}});
-  }
-  // secours : pastille coloree avec le symbole
-  if(a){
-    return makeEl("span",{title:a.designation||id,style:{display:"inline-block",fontSize:"10px",padding:"0 4px",borderRadius:"3px",background:(a.couleur||"#555"),color:"#fff",flexShrink:"0"}},id);
-  }
-  return null;
-}
 
 function renderNodeSow(node,container,depth){
   // Filtre competence : ne montrer que les branches concernees
