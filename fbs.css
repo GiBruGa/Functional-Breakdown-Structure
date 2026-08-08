@@ -1,0 +1,15 @@
+/* fbs.css — styles propres a FBS.html (mise en page 3 colonnes : arbre / detail / SOW+Params,
+   overrides de champs de formulaire specifiques aux editions FBS). Extrait du <style> inline de
+   FBS.html pour la lisibilite. Le socle commun (variables CSS, toolbar, boutons, modale, champs
+   .ff, scrollbar, menu contextuel...) est dans common.css, partage avec rfq.html. */
+#tree-panel{width:50%;min-width:220px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#tree-scroll{flex:1;overflow:auto;padding:6px;white-space:nowrap;min-height:0}
+#detail-panel{flex:1;min-width:280px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.ff-tall textarea{min-height:300px !important;resize:vertical}
+.ff-highlight textarea{background:#0d2020;border:1px solid #134e4a;color:#5eead4}
+.ff-highlight textarea:focus{border-color:#2dd4bf}
+.params-cat{font-size:13px;font-weight:bold;color:#fca5a5;letter-spacing:.04em;padding:4px 10px;background:linear-gradient(90deg,#7f1d1d33,transparent);border-left:3px solid #b91c1c;border-radius:0 4px 4px 0}
+.edit-2col{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
+.edit-col{display:flex;flex-direction:column}
+.ff-nom textarea{min-height:60px !important;resize:vertical}
+#zoom-ind{position:fixed;bottom:10px;right:14px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:3px 9px;font-size:10px;color:var(--text2);opacity:0;transition:opacity .25s;pointer-events:none;z-index:300}

@@ -1,0 +1,14 @@
+/* rfq.css — styles propres a rfq.html (mise en page 2 colonnes : arbre / DSS+SOW, menu contextuel
+   de declaration d'interet). Extrait du <style> inline de rfq.html pour la lisibilite. Le socle
+   commun (variables CSS, toolbar, boutons, modale, champs .ff, scrollbar, menu contextuel...) est
+   dans common.css, partage avec FBS.html. */
+#tree-panel{width:50%;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+#app{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#tree-scroll{flex:1;overflow:auto;padding:6px}
+#detail-panel{width:50%;overflow:hidden;display:flex;flex-direction:column}
+#params-panel{width:50%;overflow:hidden;display:flex;flex-direction:column;display:none}
+#params-scroll{flex:1;overflow-y:auto}
+#sow-ctx{position:fixed;z-index:200;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.6);padding:4px;display:none;min-width:250px}
+#sow-ctx button{display:block;width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text2);font-size:11px;font-family:inherit;cursor:pointer;border-radius:5px}
+#sow-ctx button:hover{background:var(--bg3);color:var(--text)}
+#sow-ctx .ctx-q{padding:6px 12px;font-size:10px;color:var(--text3);border-bottom:1px solid var(--border)}
