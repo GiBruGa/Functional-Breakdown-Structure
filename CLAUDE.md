@@ -109,15 +109,6 @@ Tables in use:
 - **Edge function**: `backup-database`, triggered best-effort from FBS on login if the last backup
   is >7 days old (`maybeRunBackup()`), storing to the `db-backups` Storage bucket.
 
-## Known leftover code (not removed, flagged in place)
-
-A repo-wide grep found a cluster of functions in `fbs.js` (and one in `rfq.js`, `iconImg`) with no
-call sites anywhere in the repo — see the comment block near the top of `fbs.js` for the full list.
-They look like remnants of UI removed in earlier commits (an old context-menu "Editer"/"Ajouter un
-lien", an old per-contractor "scope" checkbox UI superseded by RFQ's `declareInterest` flow, and
-admin forms extracted to EkoMa). Left in place rather than deleted blind — verify each is truly
-unreachable before removing.
-
 ## Conventions specific to this codebase
 
 - French throughout: UI strings, comments, domain terms (EF/CC = "Elément Fonctionnel"/"Contrainte
